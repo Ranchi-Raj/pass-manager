@@ -264,7 +264,7 @@ export default function Dashboard() {
           Welcome, {userName}
         </p>
         
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-4">
           {passwords.map((item) => (
             <Card key={item.id} className="backdrop-blur-md bg-white/5 border-white/10 text-white overflow-hidden">
               <CardContent className="p-6">
