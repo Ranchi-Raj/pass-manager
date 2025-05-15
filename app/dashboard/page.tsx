@@ -66,6 +66,15 @@ export default function Dashboard() {
             const data = await Auth.account.get()
             console.log("USer data", data)
 
+            // Checking if the user is already present in the database
+            // If not present then creating the user
+            const isUSer = await DB.searchUser(data?.email)
+            if(!isUSer){
+                console.log("In process of creating user")
+                await DB.createUser({email : data?.email,password : bcrypt.hashSync(data.$id, 10),name : data.$id})
+                console.log("User created")
+            }
+
             // Setting the required data
             const user = await DB.getUser(data?.email)
             //Setting the email and name of the User
@@ -77,12 +86,6 @@ export default function Dashboard() {
             const parsedPasswords = allPasswords.map((item) => JSON.parse(item))
             setPasswords(parsedPasswords)
             setRenderPasswords(parsedPasswords)
-            const isUSer = await DB.searchUser(data?.email)
-            if(!isUSer){
-                console.log("In process of creating user")
-                await DB.createUser({email : data?.email,password : bcrypt.hashSync(data.$id, 10),name : data.$id})
-                console.log("User created")
-            }
 
             setLoading(false)
         }
@@ -410,13 +413,13 @@ export default function Dashboard() {
         </div>
 
         {
-          renderPasswords.length === 0 && (
+          renderPasswords.length === 0 && passwords.length > 0 && (
             <div className="flex items-center justify-center h-64">
-  <div className="text-center">
-    <p className="text-2xl font-semibold text-gray-600">😔 Sorry</p>
-    <p className="text-lg text-gray-500 mt-1">No Results Found</p>
-  </div>
-</div>
+        <div className="text-center">
+          <p className="text-2xl font-semibold text-gray-600">😔 Sorry</p>
+          <p className="text-lg text-gray-500 mt-1">No Results Found</p>
+        </div>
+      </div>
           )
         }
 

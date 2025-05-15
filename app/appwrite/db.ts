@@ -26,7 +26,8 @@ export class DBService{
             {
                 email: email,
                 password: password,
-                name: name
+                name: name,
+                websitePasswords: [],
             }
         );
         return data;
