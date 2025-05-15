@@ -409,6 +409,17 @@ export default function Dashboard() {
           ))}
         </div>
 
+        {
+          renderPasswords.length === 0 && (
+            <div className="flex items-center justify-center h-64">
+  <div className="text-center">
+    <p className="text-2xl font-semibold text-gray-600">😔 Sorry</p>
+    <p className="text-lg text-gray-500 mt-1">No Results Found</p>
+  </div>
+</div>
+          )
+        }
+
         {passwords.length === 0 && (
           <div className="text-center py-12">
             <div className="text-white/60 mb-4">No passwords saved yet</div>
