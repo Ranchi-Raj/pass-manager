@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Eye, EyeOff, Plus, Trash2, Copy, LogOut, Pencil } from "lucide-react"
+import { Eye, EyeOff, Plus, Trash2, Copy, LogOut, Pencil   } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -388,7 +388,7 @@ export default function Dashboard() {
             <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => handleDeletePassword}
+                onClick={() => handleDeletePassword(item)}
                 className="h-8 w-8 text-zinc-400 hover:text-red-400 hover:bg-white/10"
             >
                 <Trash2 className="h-4 w-4" />
