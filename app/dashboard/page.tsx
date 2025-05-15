@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Eye, EyeOff, Plus, Trash2, Copy, LogOut, Pencil, Search } from "lucide-react"
+import { Eye, EyeOff, Plus, Trash2, Copy, LogOut, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
