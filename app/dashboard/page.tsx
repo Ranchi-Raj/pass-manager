@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Eye, EyeOff, Plus, Trash2, Copy, LogOut, Pencil } from "lucide-react"
+import { Eye, EyeOff, Plus, Trash2, Copy, LogOut, Pencil, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -22,6 +22,7 @@ import DB from "@/app/appwrite/db"
 import { toast, Toaster} from "react-hot-toast"
 import Loader from "../components/Loader"
 import LoggingOut from "../components/LoggingOut"
+import hasher from "../utils/hasher"
 // Password item type
 interface PasswordItem {
   id: string
@@ -35,6 +36,7 @@ export default function Dashboard() {
 //   const { toast } = useToast()
   const router = useRouter()
   const [passwords, setPasswords] = useState<PasswordItem[]>([])
+  const [renderPasswords, setRenderPasswords] = useState<PasswordItem[]>([])
   const [editedPassword, setEditedPassword] = useState<string>('')
   const [newPassword, setNewPassword] = useState({
     website: "",
@@ -48,6 +50,7 @@ export default function Dashboard() {
   const [userName, setUserName] = useState("")
   const [loading, setLoading] = useState(true)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [seachedWebsite, setSearchedWebsite] = useState("")
   // Load demo data on first render
   useEffect(() => {
     const demoPasswords: PasswordItem[] = [ 
@@ -72,7 +75,7 @@ export default function Dashboard() {
 
             const parsedPasswords = allPasswords.map((item) => JSON.parse(item))
             setPasswords(parsedPasswords)
-    
+            setRenderPasswords(parsedPasswords)
             const isUSer = await DB.searchUser(data?.email)
             if(!isUSer){
                 console.log("In process of creating user")
@@ -93,22 +96,38 @@ export default function Dashboard() {
 
   }, [])
 
-  const togglePasswordVisibility = (id: string) => {
+  // For Quering based on the Searched Webiste Name
+
+  useEffect(() => {
+    if (seachedWebsite) {
+      const filteredPasswords = passwords.filter((item) =>
+        item.website.toLowerCase().startsWith(seachedWebsite.toLowerCase())
+      )
+      setRenderPasswords(filteredPasswords)
+    } else {
+      setRenderPasswords(passwords)
+    }
+  },[passwords,seachedWebsite])
+  const togglePasswordVisibility = async (id: string) => {
     setVisiblePasswords((prev) => ({
       ...prev,
       [id]: !prev[id],
     })) 
   }
 
-  const handleAddPassword = () => {
+  const handleAddPassword = async () => {
     if (!newPassword.website || !newPassword.username || !newPassword.password) {
         toast.error("Please fill in all fields")
         return
     }
 
+    const encryptedPassword = await hasher.hashPassword(newPassword.password)
+
     const newItem: PasswordItem = {
       id: Date.now().toString(),
-      ...newPassword,
+      website: newPassword.website,
+      username: newPassword.username,
+      password: encryptedPassword,
     }
 
     const stringifiedPassord : string[] = passwords.map((item) => JSON.stringify(item))    
@@ -116,6 +135,7 @@ export default function Dashboard() {
     .then(() => {
         console.log("Password added to database")
         setPasswords((prev) => [...prev, newItem])
+        setRenderPasswords((prev) => [...prev, newItem])
         toast.success("Password added successfully")
       })
       .catch((error) => {
@@ -131,8 +151,12 @@ export default function Dashboard() {
 
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success("Password copied to clipboard")
+    // Decrypt the password before copying
+    const decryptedPassword = hasher.decryptPassword(text)
+      navigator.clipboard.writeText(decryptedPassword)
+      toast.success("Password copied to clipboard")
+    
+    // navigator.clipboard.writeText(text)
   }
 
   const handleLogout =  () => {
@@ -156,23 +180,25 @@ export default function Dashboard() {
 
   const handlePasswordChange = async (item : PasswordItem) => {
       
-      const newPasswords = passwords.map((password) => password.id === item.id ? {...item,password : editedPassword} : password)
+      const encryptedPassword = await hasher.hashPassword(editedPassword)
+      const newPasswords = passwords.map((password) => password.id === item.id ? {...item,password : encryptedPassword} : password)
       const stringifiedPassword : string[] = newPasswords.map((item) => JSON.stringify(item))    
       await DB.addPassword({email,passToAdd : [...stringifiedPassword]})
       setPasswords(newPasswords)
-
+      setRenderPasswords(newPasswords)
 
     toast.success("Password changed successfully")
     setChangePasswordModal(false)
   }
 
-  const handleDeletePassword = (item : PasswordItem) => {
+  const handleDeletePassword = async (item : PasswordItem) => {
       
+    console.log("Delete function called")
     const newPasswords = passwords.filter((password) => password.id !== item.id)
     setPasswords(newPasswords)
-
+    setRenderPasswords(newPasswords)
     const stringifiedPassord : string[] = newPasswords.map((item) => JSON.stringify(item))    
-    DB.addPassword({email,passToAdd : [...stringifiedPassord]})
+    await DB.addPassword({email,passToAdd : [...stringifiedPassord]})
   }
 
   if(loading)
@@ -263,9 +289,26 @@ export default function Dashboard() {
         <p className="text-2xl text-center font-semibold text-white mb-4">
           Welcome, {userName}
         </p>
-        
+        <div className="flex justify-center mb-4">
+
+
+
+        <div className="relative w-1/2 md:w-1/3">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              🔍
+            </span>
+            <Input
+              type="text"
+              placeholder="Search"
+              className="pl-10 text-center w-full"
+              onChange={(e) => setSearchedWebsite(e.target.value)}
+              value={seachedWebsite}
+            />
+          </div>
+
+        </div>
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-4">
-          {passwords.map((item) => (
+          {renderPasswords.map((item) => (
             <Card key={item.id} className="backdrop-blur-md bg-white/5 border-white/10 text-white overflow-hidden">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -341,6 +384,7 @@ export default function Dashboard() {
   </DialogContent>
         </Dialog>
 
+            {/* For deleting */}
             <Button
                 variant="ghost"
                 size="icon"
@@ -357,7 +401,7 @@ export default function Dashboard() {
                 </div>
                 <div className="space-y-2 mt-4">
                   <div className="text-sm text-zinc-400">Password</div>
-                  <div className="font-medium">{visiblePasswords[item.id] ? item.password : "••••••••••"}</div>
+                  <div className="font-medium">{visiblePasswords[item.id] ? hasher.decryptPassword(item.password) : "••••••••••"}</div>
                 </div>
               </CardContent>
             </Card>
