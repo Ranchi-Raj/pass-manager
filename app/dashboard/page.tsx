@@ -92,6 +92,7 @@ export default function Dashboard() {
         catch (error) {
             console.error("Error during login:", error)
             // Handle error (e.g., show a toast notification)
+            window.location.href = "/login"
             toast.error("Error during login")
         }
     }
