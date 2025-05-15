@@ -41,7 +41,8 @@ A privacy-focused password manager built with **Next.js**, **Appwrite**, **Crypt
    cd secure-password-manager
 2. **Install the dependencies**:
    ```bash
-  npm install
+    npm install
 3. **Configure environment variables**:
 4. Run the local server
-  npm run dev
+   ```bash
+      npm run dev
