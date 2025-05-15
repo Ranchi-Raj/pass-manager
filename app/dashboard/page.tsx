@@ -23,6 +23,7 @@ import { toast, Toaster} from "react-hot-toast"
 import Loader from "../components/Loader"
 import LoggingOut from "../components/LoggingOut"
 import hasher from "../utils/hasher"
+import bcrypt from "bcryptjs"
 // Password item type
 interface PasswordItem {
   id: string
@@ -79,7 +80,7 @@ export default function Dashboard() {
             const isUSer = await DB.searchUser(data?.email)
             if(!isUSer){
                 console.log("In process of creating user")
-                await DB.createUser({email : data?.email,password : data.$id,name : data.name})
+                await DB.createUser({email : data?.email,password : bcrypt.hashSync(data.$id, 10),name : data.$id})
                 console.log("User created")
             }
 
@@ -121,7 +122,7 @@ export default function Dashboard() {
         return
     }
 
-    const encryptedPassword = await hasher.hashPassword(newPassword.password)
+    const encryptedPassword = await hasher.hashPassword(newPassword.password, bcrypt.hashSync(email, 10))
 
     const newItem: PasswordItem = {
       id: Date.now().toString(),
@@ -152,7 +153,7 @@ export default function Dashboard() {
 
   const copyToClipboard = (text: string) => {
     // Decrypt the password before copying
-    const decryptedPassword = hasher.decryptPassword(text)
+    const decryptedPassword = hasher.decryptPassword(text, bcrypt.hashSync(email, 10))
       navigator.clipboard.writeText(decryptedPassword)
       toast.success("Password copied to clipboard")
     
@@ -180,7 +181,7 @@ export default function Dashboard() {
 
   const handlePasswordChange = async (item : PasswordItem) => {
       
-      const encryptedPassword = await hasher.hashPassword(editedPassword)
+      const encryptedPassword = await hasher.hashPassword(editedPassword, bcrypt.hashSync(email, 10))
       const newPasswords = passwords.map((password) => password.id === item.id ? {...item,password : encryptedPassword} : password)
       const stringifiedPassword : string[] = newPasswords.map((item) => JSON.stringify(item))    
       await DB.addPassword({email,passToAdd : [...stringifiedPassword]})
@@ -401,7 +402,7 @@ export default function Dashboard() {
                 </div>
                 <div className="space-y-2 mt-4">
                   <div className="text-sm text-zinc-400">Password</div>
-                  <div className="font-medium">{visiblePasswords[item.id] ? hasher.decryptPassword(item.password) : "••••••••••"}</div>
+                  <div className="font-medium">{visiblePasswords[item.id] ? hasher.decryptPassword(item.password, bcrypt.hashSync(email, 10)) : "••••••••••"}</div>
                 </div>
               </CardContent>
             </Card>

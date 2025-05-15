@@ -1,11 +1,11 @@
 import CryptoJS from 'crypto-js';
-import conf from '../conf/conf';
+// import conf from '../conf/conf';
 
 class Hasher {
- async hashPassword(password: string): Promise<string> {
+ async hashPassword(password: string, secretKey : string): Promise<string> {
     try{
 
-        const encrypted = CryptoJS.AES.encrypt(password, conf.secretKey).toString();
+        const encrypted = CryptoJS.AES.encrypt(password, secretKey).toString();
         return encrypted;
     }
     catch(e)
@@ -15,10 +15,10 @@ class Hasher {
     }
 }
 
- decryptPassword(encrypted: string): string {
+ decryptPassword(encrypted: string, secretKey : string): string {
     try{
 
-        const bytes = CryptoJS.AES.decrypt(encrypted, conf.secretKey);
+        const bytes = CryptoJS.AES.decrypt(encrypted, secretKey);
         const decrypted = bytes.toString(CryptoJS.enc.Utf8);
         return decrypted;
     }
